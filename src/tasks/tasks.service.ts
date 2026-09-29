@@ -14,11 +14,6 @@ export class TasksService {
         title: 'Build REST API',
         status: 'in-progress',
       },
-      {
-        id: 3,
-        title: 'Connect React',
-        status: 'pending',
-      },
     ];
   }
 }
