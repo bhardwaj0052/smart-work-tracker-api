@@ -6,13 +6,13 @@ export class TasksService {
     return [
       {
         id: 1,
-        title: 'Learn NestJS',
-        status: 'pending',
+        name: 'Rahul',
+        email: 'Rahul@gmail.com',
       },
       {
         id: 2,
-        title: 'Build REST API',
-        status: 'in-progress',
+        name: 'Akash',
+        email: 'in-progress',
       },
     ];
   }

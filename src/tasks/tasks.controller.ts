@@ -3,8 +3,8 @@ import { TasksService } from './tasks.service';
 
 interface Task {
   id: number;
-  title: string;
-  status: string;
+  name: string;
+  email: string;
 }
 
 @Controller()
