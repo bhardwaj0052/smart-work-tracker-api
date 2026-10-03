@@ -11,8 +11,13 @@ export class TasksService {
     @InjectModel(Task.name) private readonly taskmodel: Model<TaskDocument>,
   ) {}
 
-  async getTasks(status?: string, search?: string, priority?: string) {
-    let query = this.taskmodel.find();
+  async getTasks(
+    userId: string,
+    status?: string,
+    search?: string,
+    priority?: string,
+  ) {
+    let query = this.taskmodel.find({ userId });
 
     if (status) {
       query = query.find({ status: { $regex: `^${status}$`, $options: 'i' } });
@@ -32,20 +37,20 @@ export class TasksService {
     return await query.exec();
   }
 
-  async getTaskById(id: string) {
-    const task = await this.taskmodel.findOne({ id });
+  async getTaskById(id: string, userId: string) {
+    const task = await this.taskmodel.findOne({ id, userId });
     if (!task) {
       throw new NotFoundException('Task not found');
     }
     return task;
   }
 
-  async createTask(dto: CreateTaskDto) {
-    return await this.taskmodel.create(dto);
+  async createTask(dto: CreateTaskDto, userId: string) {
+    return await this.taskmodel.create({ ...dto, userId: userId });
   }
 
-  async updateTask(id: string, dto: UpdateTaskDto) {
-    const task = await this.taskmodel.findOneAndUpdate({ id }, dto, {
+  async updateTask(id: string, dto: UpdateTaskDto, userId: string) {
+    const task = await this.taskmodel.findOneAndUpdate({ id, userId }, dto, {
       returnDocument: 'after',
       runValidators: true,
     });
@@ -58,8 +63,8 @@ export class TasksService {
     return task;
   }
 
-  async deleteTask(id: string) {
-    const task = await this.taskmodel.findOneAndDelete({ id: id });
+  async deleteTask(id: string, userId: string) {
+    const task = await this.taskmodel.findOneAndDelete({ id, userId });
     if (!task) {
       throw new NotFoundException('Task not found');
     }
