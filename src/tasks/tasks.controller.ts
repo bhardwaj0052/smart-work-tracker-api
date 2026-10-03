@@ -1,30 +1,59 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Req,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-export interface Task {
-  id: number;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-}
-
+@UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly tasksservice: TasksService) {}
+  constructor(private readonly tasksService: TasksService) {}
+
   @Get()
   getTasks(
+    @Req() req: any,
     @Query('status') status?: string,
     @Query('search') search?: string,
-  ): Task[] {
-    return this.tasksservice.getTasks(status, search);
+    @Query('priority') priority?: string,
+  ) {
+    return this.tasksService.getTasks(req.user.sub, status, search, priority);
   }
+
   @Get(':id')
-  gettaskbyid(@Param('id') id: string): Task | string {
-    return this.tasksservice.gettaskbyid(id);
+  getTaskById(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: any) {
+    return this.tasksService.getTaskById(id, req.user.sub);
   }
+
   @Post()
-  createtask(@Body() body: Task): Task | string {
-    return this.tasksservice.createtask(body);
+  createTask(@Body() dto: CreateTaskDto, @Req() req: any) {
+    return this.tasksService.createTask(dto, req.user.sub);
+  }
+
+  @Patch(':id')
+  updateTask(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateTaskDto,
+    @Req() req: any,
+  ) {
+    return this.tasksService.updateTask(id, dto, req.user.sub);
+  }
+
+  @Delete(':id')
+  deleteTask(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: any) {
+    return this.tasksService.deleteTask(id, req.user.sub);
   }
 }
