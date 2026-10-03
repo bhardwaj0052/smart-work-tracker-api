@@ -1,77 +1,68 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Task } from './tasks.controller';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Task, TaskDocument } from './schema/task.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [
-    {
-      id: 1,
-      title: 'Learn NestJS basics',
-      description: 'Understand modules, controllers and services',
-      priority: 'high',
-      status: 'completed',
-    },
-    {
-      id: 2,
-      title: 'Build React dashboard',
-      description: 'Create task list UI using React',
-      priority: 'medium',
-      status: 'in-progress',
-    },
-    {
-      id: 3,
-      title: 'Create authentication API',
-      description: 'Build login endpoint with validation',
-      priority: 'high',
-      status: 'pending',
-    },
-    {
-      id: 4,
-      title: 'Write API documentation',
-      description: 'Document all task endpoints in Postman',
-      priority: 'low',
-      status: 'pending',
-    },
-    {
-      id: 5,
-      title: 'Connect React with NestJS',
-      description: 'Fetch tasks from backend using fetch',
-      priority: 'medium',
-      status: 'completed',
-    },
-  ];
-  getTasks(status?: string, search?: string) {
-    let result = this.tasks;
+  constructor(
+    @InjectModel(Task.name) private readonly taskmodel: Model<TaskDocument>,
+  ) {}
+
+  async getTasks(status?: string, search?: string, priority?: string) {
+    let query = this.taskmodel.find();
+
     if (status) {
-      result = result.filter((item) => item.status === status);
+      query = query.find({ status: { $regex: `^${status}$`, $options: 'i' } });
+    }
+    if (priority) {
+      query = query.find({ priority });
     }
     if (search) {
-      result = result.filter(
-        (item) =>
-          item.title.toLowerCase().includes(search.toLowerCase()) ||
-          item.priority.toLowerCase().includes(search.toLowerCase()),
-      );
+      query = query.find({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+        ],
+      });
     }
-    return result;
+
+    return await query.exec();
   }
-  gettaskbyid(id: string): Task | string {
-    const result = this.tasks.find((item) => item.id === Number(id));
-    if (!result) {
+
+  async getTaskById(id: string) {
+    const task = await this.taskmodel.findOne({ id });
+    if (!task) {
       throw new NotFoundException('Task not found');
     }
-    return result;
+    return task;
   }
-  createtask(body: Task): Task | string {
-    if (
-      !body ||
-      !body.title.trim() ||
-      !body.description.trim() ||
-      !body.priority.trim() ||
-      !body.status.trim()
-    ) {
-      return 'Data is missing';
+
+  async createTask(dto: CreateTaskDto) {
+    return await this.taskmodel.create(dto);
+  }
+
+  async updateTask(id: string, dto: UpdateTaskDto) {
+    const task = await this.taskmodel.findOneAndUpdate({ id }, dto, {
+      returnDocument: 'after',
+      runValidators: true,
+    });
+    // const taskss= await this.taskmodel.findOne({id})
+    // Object.assign(taskss,dto)
+    if (!task) {
+      throw new NotFoundException('Task not found');
     }
-    this.tasks.push({ ...body, id: this.tasks.length + 1 });
-    return body;
+    // return task.save();
+    return task;
+  }
+
+  async deleteTask(id: string) {
+    const task = await this.taskmodel.findOneAndDelete({ id: id });
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    return 'deleted successfully';
   }
 }
