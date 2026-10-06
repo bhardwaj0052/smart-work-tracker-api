@@ -4,11 +4,9 @@ import { TasksController } from './tasks.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Task, TaskSchema } from './schema/task.schema';
 import { AuthModule } from 'src/auth/auth.module';
-import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    JwtModule,
     AuthModule,
     MongooseModule.forFeature([{ name: Task.name, schema: TaskSchema }]),
   ],

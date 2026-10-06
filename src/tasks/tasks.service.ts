@@ -17,57 +17,81 @@ export class TasksService {
     search?: string,
     priority?: string,
   ) {
-    let query = this.taskmodel.find({ userId });
+    try {
+      let query = this.taskmodel.find({ userId });
 
-    if (status) {
-      query = query.find({ status: { $regex: `^${status}$`, $options: 'i' } });
-    }
-    if (priority) {
-      query = query.find({ priority });
-    }
-    if (search) {
-      query = query.find({
-        $or: [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-        ],
-      });
-    }
+      if (status) {
+        query = query.find({
+          status: { $regex: `^${status}$`, $options: 'i' },
+        });
+      }
+      if (priority) {
+        query = query.find({
+          priority: { $regex: `^${priority}$`, $options: 'i' },
+        });
+      }
+      if (search) {
+        query = query.find({
+          $or: [
+            { title: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } },
+          ],
+        });
+      }
 
-    return await query.exec();
+      return await query;
+    } catch {
+      throw new NotFoundException();
+    }
   }
 
   async getTaskById(id: string, userId: string) {
-    const task = await this.taskmodel.findOne({ id, userId });
-    if (!task) {
-      throw new NotFoundException('Task not found');
+    try {
+      const task = await this.taskmodel.findOne({ id, userId });
+      if (!task) {
+        throw new NotFoundException('Task not found');
+      }
+      return task;
+    } catch {
+      throw new NotFoundException();
     }
-    return task;
   }
 
   async createTask(dto: CreateTaskDto, userId: string) {
-    return await this.taskmodel.create({ ...dto, userId: userId });
+    try {
+      return await this.taskmodel.create({ ...dto, userId: userId });
+    } catch {
+      throw new NotFoundException();
+    }
   }
 
   async updateTask(id: string, dto: UpdateTaskDto, userId: string) {
-    const task = await this.taskmodel.findOneAndUpdate({ id, userId }, dto, {
-      returnDocument: 'after',
-      runValidators: true,
-    });
-    // const taskss= await this.taskmodel.findOne({id})
-    // Object.assign(taskss,dto)
-    if (!task) {
-      throw new NotFoundException('Task not found');
+    try {
+      const task = await this.taskmodel.findOneAndUpdate({ id, userId }, dto, {
+        returnDocument: 'after',
+        runValidators: true,
+      });
+      // const taskss= await this.taskmodel.findOne({id})
+      // Object.assign(taskss,dto)
+      if (!task) {
+        throw new NotFoundException('Task not found');
+      }
+      // return task.save();
+      return task;
+    } catch {
+      throw new NotFoundException();
     }
-    // return task.save();
-    return task;
   }
 
   async deleteTask(id: string, userId: string) {
-    const task = await this.taskmodel.findOneAndDelete({ id, userId });
-    if (!task) {
-      throw new NotFoundException('Task not found');
+    try {
+      const task = await this.taskmodel.findOneAndDelete({ id, userId });
+      if (!task) {
+        throw new NotFoundException('Task not found');
+      }
+      return 'deleted successfully';
+    } catch {
+      throw new NotFoundException();
     }
-    return 'deleted successfully';
   }
 }

@@ -22,6 +22,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       request.user = await this.jwtService.verifyAsync(token);
     } catch {
       throw new UnauthorizedException();

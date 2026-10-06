@@ -24,7 +24,7 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  getTasks(
+  async getTasks(
     @Req() req: any,
     @Query('status') status?: string,
     @Query('search') search?: string,
@@ -34,17 +34,20 @@ export class TasksController {
   }
 
   @Get(':id')
-  getTaskById(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: any) {
+  async getTaskById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: any,
+  ) {
     return this.tasksService.getTaskById(id, req.user.sub);
   }
 
   @Post()
-  createTask(@Body() dto: CreateTaskDto, @Req() req: any) {
+  async createTask(@Body() dto: CreateTaskDto, @Req() req: any) {
     return this.tasksService.createTask(dto, req.user.sub);
   }
 
   @Patch(':id')
-  updateTask(
+  async updateTask(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateTaskDto,
     @Req() req: any,
@@ -53,7 +56,10 @@ export class TasksController {
   }
 
   @Delete(':id')
-  deleteTask(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: any) {
+  async deleteTask(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: any,
+  ) {
     return this.tasksService.deleteTask(id, req.user.sub);
   }
 }
